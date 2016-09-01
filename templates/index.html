@@ -1,0 +1,114 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.gitcdn.link/cdn/angular/bower-material/v1.1.0-rc2-master-9245f54/angular-material.css">
+        <link rel="stylesheet" type="text/css" href="https://material.angularjs.org/1.1.0/docs.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular-animate.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular-route.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular-aria.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular-messages.min.js"></script>
+        <script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/t-114/svg-assets-cache.js"></script>
+        <script src="https://cdn.gitcdn.link/cdn/angular/bower-material/v1.1.0/angular-material.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular-animate.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/1.2.5/ui-bootstrap.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-spinner/0.8.1/angular-spinner.min.js"></script>
+        <style>
+            .btn1
+            {
+              padding: 0 6px 0 6px;
+              margin: 6px 8px 6px 8px;
+              min-width: 88px;
+              border-radius: 3px;
+              font-size: 14px;
+              text-align: center;
+              text-transform: uppercase;
+              text-decoration:none;
+              border: none;
+              outline: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <script>
+                var app = angular.module('gameSelect', ['ui.bootstrap', 'angularSpinner', 'ngAnimate', 'ngMaterial']);
+                app.controller('selectController', function($scope, $http, $timeout) {
+                    $scope.selected = "";
+                    $scope.gameLoading = false;
+                    // Get the list of games.
+                    $http.get("/naomiselector/getROMList")
+                    .success(function (response) {
+                            $scope.games = response;
+                        }
+                    );
+
+                    // Load the game the user selected
+                    $scope.selectGame = function(selected, event) {
+                        $scope.gameLoading = true;
+                        $scope.gameLoaded = false;
+                        $scope.gotResult = false;
+
+                        // Select the ROM
+                        $http.get('/naomiselector/selectROM', {params: {'game': selected.replace(/"/g, "")}})
+                        .success(function (response) {
+                                $scope.gotResult = true;
+
+                                // Check the response to see if the game was loaded.
+                                $scope.gameLoaded = (response == "Game loading!");
+
+                                // Delay before returning to menu so the user has a chance to read the error.
+                                $timeout(function(){
+                                    $scope.gameLoading = false;
+                                    $scope.gotResult = false;
+                                }, 2000);
+                            }
+                        )
+                    };
+                });
+
+                // To prevent the "not trusted" error
+                app.filter('trusted', ['$sce',function ($sce) {
+                    return function(url) {
+                        return $sce.trustAsResourceUrl(url);
+                    };
+                }]);
+        </script>
+
+        <div ng-app="gameSelect" ng-cloak ng-controller="selectController">
+            <div align="center">
+                {% load static %}
+                <img src="{% static 'Naomi.svg' %}" width="35%" />
+                <h1>GAME SELECTOR</h1>
+            </div>
+            <div layout="row" layout-align="center center" ng-if="games">
+
+                <!-- Game list -->
+                <md-list layout="column" ng-if="!gameLoading">
+                    <md-list-item class="md-2-item" width="80%" ng-repeat="game in games">
+                        <md-divider></md-divider>
+                        <md-button ng-click="selectGame(game.filename, $event)" style="width: 100%;" enabled="!gameLoading">
+                            <md-list-item class="md-2-item">
+                                <div>
+                                    <iframe width="210" height="157" ng-if="game.video" ng-src="{% verbatim %}{{game.video | trusted}}{% endverbatim %}" frameborder="0" allowfullscreen style="float: left; padding-bottom: 10px; padding-right: 10px;"></iframe>
+                                    <h3 style="width: 140px;">{% verbatim %}{{game.name}}{% endverbatim %}</h3>
+                                </div>
+                                <h4 style="padding-left: 10px; text-align: left;" ng-model="selected">{% verbatim %}{{game.filename}}{% endverbatim %}</h4>
+                            </md-list-item>
+                        </md-button>
+                    </md-list-item>
+                </md-list>
+
+                <!-- Load status -->
+                <span class="animContainer md-secondary" us-spinner="{color: 'black', top: '35%', scale: 1.75}" style="width: 150px; height: 150px;" ng-if="!gotResult && !gameLoaded && gameLoading"></span>
+                <h3 ng-if="gotResult && !gameLoaded" style="color: red;">Could not load game!</h3>
+                <div align="center" ng-if="gameLoaded" style="padding-top: 70px;"><img src="{% static 'checkbox.svg' %}" width="85" height="85" ng-if="gotResult && gameLoaded"/></div>
+            </div>
+        </div>
+    </body>
+    <footer style="visibility: hidden;">
+        <div>Icons made by <a href="http://www.flaticon.com/authors/dave-gandy" title="Dave Gandy">Dave Gandy</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+    </footer>
+</html>
