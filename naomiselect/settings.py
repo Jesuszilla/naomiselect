@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 
 # Absolute path to ROM folder
-ROMS_FOLDER='/mnt/raidmount/Media/Games/NAOMI/'
+ROMS_FOLDER='/path/to/roms'
 
 # NAOMI 1/2, Chihiro, Triforce IP
 DEVICE_IP='192.168.0.17'
