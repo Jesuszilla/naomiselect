@@ -1,9 +1,9 @@
 NAME="naomi_selector"                                # Name of the application
-DJANGODIR=/home/jesuszilla/naomiselect               # Django project directory
+DJANGODIR=/home/user/naomiselect                     # Django project directory
 PROJECTDIR=naomiselect                               # Project directory
-SOCKFILE=/home/jesuszilla/naomiselect/gunicorn.sock  # we will communicte using this unix socket
+SOCKFILE=/home/user/naomiselect/gunicorn.sock        # we will communicte using this unix socket
 VIRTUALENV=naomienv                                  # virtual environment name
-USER=jesuszilla                                      # the user to run as
+USER=user                                            # the user to run as
 GROUP=www-data                                       # the group to run as
 NUM_WORKERS=3                                        # how many worker processes should Gunicorn spawn
 DJANGO_SETTINGS_MODULE=naomiselect.settings          # which settings file should Django use
